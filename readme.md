@@ -4,7 +4,7 @@ This is the software for a stop watch designed for roller derby jam timing. It's
 
 If there's enough interest, i'll produce a small batch of CounterClocks, so let me know.
 
-If you like this project, please consider supporting my League, [Bear City Roller Derby](https)
+If you like this project, please consider supporting my League, [Bear City Roller Derby](http://bearcityrollerderby.com/en/)
 
 Pull requests welcome.
 
