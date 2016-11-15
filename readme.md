@@ -106,7 +106,7 @@ Pressing Button A will decrease the number of Seconds or Minutes on the Period C
 #### Jam Adjust
 
 Pressing Button A will increase the number of Jams.
-Pressing Button A will decrease the number of Jams.
+Pressing Button B will decrease the number of Jams.
 
 ### Halftime
 
