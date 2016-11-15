@@ -35,13 +35,13 @@ And the big clock on the right shows the clock for Jam, Lineup, Timeout and Half
 ## Usage
 
 There are three buttons: Button A (Green), Button B (Red) and Button C (Black).
-There#s also a vibrating motor, giving some haptic feedback.
+There's also a vibrating motor, giving some haptic feedback.
 
 After switching the device on, the game is started by pressing any button. The game starts in Lineup Mode.
 
 ### Lineup
 
-In Lineup Mode the timer is set to 30 Seconds and will count down to 0. At 0 the device switches to Jam Mode automatically and resumes the Period Clock if stopped.
+In Lineup Mode the timer is set to 30 Seconds and will count down to 0. At 0 the device switches to Jam Mode automatically and resume the Period Clock if stopped.
 
 At five seconds the device will buzz.
 At four to one seconds, the device will do a short buzz every second.
@@ -82,7 +82,11 @@ A Team Timeout will end autmatically at 60 seconds and the device will switch to
 Pressing Button A will decrease the number of Team Timeouts shown on the right.
 Pressing Button B will decrease the number of Team Timeouts shown on the left.
 
+When the Timeout Clock passes 50 seconds, the device will give a short buzz to remember the JT to give a verbal 10 seconds notice.
+From 55 to 59 Seconds, the device will give a short buzz.
+
 When the Timeout Clock passes 60 seconds while not in Team Timeout Mode, pressing button A will end the Timeout in Team Timeout Mode.
+
 
 #### Official Review
 
