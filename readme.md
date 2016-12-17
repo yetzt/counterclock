@@ -37,7 +37,15 @@ And the big clock on the right shows the clock for Jam, Lineup, Timeout and Half
 There are three buttons: Button A (Green), Button B (Red) and Button C (Black).
 There#s also a vibrating motor, giving some haptic feedback.
 
-After switching the device on, the game is started by pressing any button. The game starts in Lineup Mode.
+### WiFi
+
+If configured (`wifi` set to `true`), the device will try to connect to a WiFi Network. If successful, there are three differnt Options:
+
+Button A will start the device in full WiFi mode, every event will be sent to the server.
+Button B will start the devise in Clock Sync mode, only the period clock will be synced after the begin of each Jam.
+Button C will disable the WiFi.
+
+The game is started by pressing any of these buttons. The game then starts in Lineup Mode.
 
 ### Lineup
 
@@ -117,6 +125,28 @@ Pressing Button B will initiate an overtime Jam. The Lineup Clock will be set to
 
 Pressing Button C will start a timeout and the device will switch to Timeout Mode. This is useful when someone uses their Official Review after the last Jam.
 
+## WiFi Protocol
+
+The WiFi protocol is rather simple. The device will sent UDP packets to port 16016 on it's Network Gateway. These contain some ascii commands:
+
+* `gst`: Start of Game
+* `eog`: End of game
+* `pen`: End of Period
+* `jst`: Start of Jam
+* `jen`: End of Jam
+* `oto`: Official Timeout
+* `tto:1`: Team-Timeout (Team 1)
+* `tto:2`: Team-Timeout (Team 2)
+* `orv:1`: Official-Review (Team 1)
+* `orv:2`: Official-Review (Team 2)
+* `rrv:1`: Retained Review (Team 1)
+* `lrv:2`: Lost Review (Team 2)
+* `rsm`: Resume Game (After Timeout or Intermission)
+* `otj`: Overtime Jam 
+* `clk:<time>`: Set Period Clock to this number of remaining Milliseconds
+
+See [Scorehub](https://github.com/yetzt/scorehub) for an implementation.
+
 ## Parts list
 
 Those are the parts i used for my prototype.
@@ -151,7 +181,6 @@ In case you want to recreate my prototype, you
 ## Future Plans
 
 * Source a nice case
-* Make the device communicate with scoreboard software
 
 ## License
 
