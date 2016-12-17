@@ -342,31 +342,6 @@ void loop() {
           Udp.beginPacket(WiFi.gatewayIP(), 16016);
           Udp.write("jst");
           Udp.endPacket();
-
-          Udp.beginPacket(WiFi.gatewayIP(), 16016);
-          Udp.write("debug: ");
-
-          itoa(PeriodClock.total(), clck, 10);
-          Udp.write(clck);
-
-          Udp.write(" - ");
-
-          itoa(PeriodClock.min(), clck, 10);
-          Udp.write(clck);
-
-          Udp.write(":");
-
-          itoa(PeriodClock.sec(), clck, 10);
-          Udp.write(clck);
-
-          Udp.write(".");
-
-          itoa(PeriodClock.ms(), clck, 10);
-          Udp.write(clck);
-
-
-          Udp.endPacket();
-
         }
 
         // start period clock
