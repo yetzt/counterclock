@@ -864,7 +864,7 @@ void draw(){
     display.setCursor(0,10);
     display.printf("P%1d J%02d",period,jam);
     display.setCursor(0,25);
-    display.printf("%02d:%02d",PeriodClock.min(),PeriodClock.sec());
+    display.printf("%02d:%02d",PeriodClock.min(),PeriodClock.csec());
 
     // display state
     display.setCursor(0,32);
@@ -911,11 +911,11 @@ void draw(){
       case STATE_WAIT: break;
       case STATE_LINEUP:
         display.setCursor(93,25);
-        display.printf("%02d", LineupClock.sec());
+        display.printf("%02d", LineupClock.csec());
       break;
       case STATE_JAM:
         display.setCursor(63,25);
-        display.printf("%1d:%02d", JamClock.min(), JamClock.sec());
+        display.printf("%1d:%02d", JamClock.min(), JamClock.csec());
       break;
       case STATE_TIMEOUT:
         if (TimeoutClock.left()<3000) {

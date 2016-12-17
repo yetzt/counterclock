@@ -138,6 +138,22 @@ class Timer {
 			return (e<v) ? (((v-e)/1000)%60) : 0;
 		}
 
+    // return ceiled hours
+    unsigned long chour() {
+      return (e<v) ? (int)ceil((float)((v-e)/3600000)) : 0;
+    }
+
+    // return ceiled minutes
+    unsigned long cmin() {
+      return (e<v) ? (((int)ceil((float)(v-e)/60000))%60) : 0;
+    }
+
+    // return ceiled seconds
+    unsigned long csec() {
+      return (e<v) ? (((int)ceil((float)(v-e)/1000))%60) : 0;
+    }
+
+
 		unsigned long ms() {
 			return (e<v) ? ((v-e)%1000) : 0;
 		}
