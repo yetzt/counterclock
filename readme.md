@@ -42,7 +42,7 @@ There's also a vibrating motor, giving some haptic feedback.
 If configured (`wifi` set to `true`), the device will try to connect to a WiFi Network. If successful, there are three differnt Options:
 
 Button A will start the device in full WiFi mode, every event will be sent to the server.
-Button B will start the devise in Clock Sync mode, only the period clock will be synced after the begin of each Jam.
+Button B will start the device in Clock Sync mode, only the period clock will be synced after the begin of each Jam.
 Button C will disable the WiFi.
 
 The game is started by pressing any of these buttons. The game then starts in Lineup Mode.
