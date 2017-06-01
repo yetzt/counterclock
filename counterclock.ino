@@ -189,7 +189,7 @@ void setup() {
     display.setCursor(0,32);
     display.print("WIFI ");
     while (WiFi.status() != WL_CONNECTED && wifi == true) {
-      if ((millis() - wifi_init) > 20000) {
+      if ((millis() - wifi_init) > 15000) {
         wifi = false;
         WiFi.forceSleepBegin();
       } else {
