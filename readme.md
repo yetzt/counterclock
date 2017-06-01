@@ -81,7 +81,9 @@ Every Timeout starts as an Official Timeout. Pressing Button C cycles through Ti
 
 #### Official Timeout
 
-Pressing Button A will end the official Timeout and the device will switch to Lineup Mode.
+Pressing Button A or B will end the official Timeout and the device will switch to Lineup Mode.
+
+When the Period Clock was at unter 30 seconds at the end of the last jam, Button A will resume the Period Clock, Button B will not. Use Button B at your discretion when an Official Timeout is called after a Team Timeout or Official Review to prevent the Official Timeout from killing the otherwise set Jam. (Yes, that's a bit mindboggling.)
 
 #### Team Timeout
 
