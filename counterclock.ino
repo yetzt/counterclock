@@ -124,6 +124,9 @@ int next_state = STATE_WAIT;
 int period = 0;
 int jam = 0;
 
+// remaining period time at end of jam
+int remtime = 0;
+
 // overtime mode bit
 bool overtime = false;
 
@@ -372,6 +375,9 @@ void loop() {
         // pause period clock
         PeriodClock.pause();
 
+        // keep remaining time on clock to check
+        remtime = PeriodClock.total();
+
         // start timeout clock
         TimeoutClock.reset();
         TimeoutClock.start();
@@ -389,6 +395,9 @@ void loop() {
         // no one ever will gain lead and call in 3 seconds
         // also: no calling off overtime jams
 
+        // keep remaining time on clock to check
+        remtime = PeriodClock.total();
+
         // end jam and lineup
         JamClock.set(0);
         buzzer_state = BUZZER_SHORT;
@@ -403,6 +412,8 @@ void loop() {
       }
 
       if (JamClock.done()) { // has the jam come to an end?
+
+        remtime = PeriodClock.total();
 
         if (PeriodClock.done()) { // is the period over?
 
@@ -436,6 +447,8 @@ void loop() {
             Udp.endPacket();
           };
 
+          clocksync();
+
         }
 
       }
@@ -449,7 +462,7 @@ void loop() {
       // FIXME: this should better be a switch()
       if (timeout_state == 0) { // official timeout
 
-        if (a_down) { // end official timeout
+        if (a_down || b_down) { // end official timeout
 
           TimeoutClock.reset();
 
@@ -478,10 +491,6 @@ void loop() {
             LineupClock.reset();
             LineupClock.start();
 
-            // resume period clock after official timeout when < 30 sec on period clock
-            // in accordance with wftda rule 1.4.3.1
-            if (PeriodClock.total() <= 30000) PeriodClock.start();
-
             // send resume
             if (wifi && wifi_level == WIFI_ALL) {
               Udp.beginPacket(WiFi.gatewayIP(), 16016);
@@ -489,7 +498,20 @@ void loop() {
               Udp.endPacket();
             };
 
-            // FIXME: send resume period clock when period clock < 30000
+            // resume period clock after official timeout when < 30 sec was on the period clock at the end of the last jam and a is pressed
+            // keep paused if b is pressed, to avoid cancellation of jams through ot after tt/or
+            if (remtime < 30000 && a_down) {
+              PeriodClock.start();
+
+              // send resume period clock
+              if (wifi && wifi_level == WIFI_ALL) {
+                Udp.beginPacket(WiFi.gatewayIP(), 16016);
+                Udp.write("rpc");
+                Udp.endPacket();
+              };
+            }
+
+            clocksync();
 
           }
 
@@ -567,6 +589,8 @@ void loop() {
                 Udp.write("rsm");
                 Udp.endPacket();
               };
+
+              clocksync();
 
             }
 
@@ -683,6 +707,8 @@ void loop() {
             next_state = STATE_LINEUP;
             LineupClock.reset();
             LineupClock.start();
+
+            clocksync();
 
           }
 
