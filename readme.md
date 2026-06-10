@@ -1,194 +1,134 @@
-# CounterClock
+# CounterClock for M5Stack StopWatch
 
-This is the software for a stop watch designed for roller derby jam timing. It's made out of an arduino with a 128×32 OLED display.
+![CounterClock in Action](docs/counterclock.jpeg)
 
-If there's enough interest, i'll produce a small batch of CounterClocks, so let me know.
+This is the software for a stop watch designed for Roller Derby Jam Timing.
+It's made to run on an [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch) ([Shop](https://shop.m5stack.com/products/m5stack-stopwatch-dev-kit-esp32-s3))
 
-If you like this project, please consider supporting my League, [Bear City Roller Derby](http://bearcityrollerderby.com/en/)
+## Manual
 
-Pull requests welcome.
+*A comprehensive manual is planned*
 
-## Used Libraries
+### Buttons
 
-* [Adafruit_GFX](https://github.com/adafruit/Adafruit-GFX-Library)
-* [Adafruit_SSD1306](https://github.com/adafruit/Adafruit_SSD1306)
-* [Adafruit_FeatherOLED](https://github.com/adafruit/Adafruit_FeatherOLED)
-* [ESP8266WiFi](https://github.com/esp8266/Arduino/) (If you use the Adafruit Feather HUZZAH)
+The right button always executes the next logical step in the game
 
-## Prototype
+* At the Start: start the first Lineup
+* During Lineup: Immediately start the Jam
+* During Jam: Immediately end the Jam
+* During Timeout: End the Timeout
+* During Halftime: Start the next period
+* At the End: Start a new Game
 
-![The Prototype](doc/prototype.jpg)
+The left button starts a Timeout during Jam and Lineup
+During a Timeout, the left button switches between Official Timeout, Team Timeout and Official Review modes.
 
-Yes, it's crooked and rough, but it works like a charm.
+### Touch Controls
 
-## Interface
+* During Lineup, a Button to go to 5 Seconds immediately is available if the Period Clock is stopped. This can also be achieved by downwards swipe on the screen
+* At the end of the game, a Button to start an Overtime Jam is available
+* During timeout
+	* Holding the `T` icons will switch the mode to Team Timeout and mark a timeout for the corresponding team
+	* Holding the `O` icon will switch the mode Official Review and mark the Review for the corresponding team. Holding the icon again will mark the Review as retained.
+	* Holding the Period Clock time will open an interface to adjust it
+	* Holding the Perdiod and Jam number will open an interface to adjust them
+	* Holding the Real Time clock will open an interface to change it
 
-![The Display](doc/display.png)
+### Automatic Actions
 
-In the top left corner, Jam and Period number are indicated.
-Below the period clock is shown.
-In the left bottom, the current state is displayed.
+* Jam and Period numbers are incremented at the start of the Jam or Period
+* When the Lineup clock has run down, the next Jam will start
+* When the Jam clock has run down, the Jam will end
+* A Team Timeout will end after a 60 seconds and start a new Lineup
+* The Period clock will immediately stop at a Timeout
+* The Period clock will resume if stopped at the start of a Jam
+* The Period clock will resume after an Official Timeout when there are less than 30 seconds on the Period Clock ([WFTDA Officiating Procedures 3.2.2](https://static.wftda.com/officiating/wftda-officiating-procedures.pdf))
 
-On the right bottom, symbols indicate remaining Team Timeouts and Official Reviews.
-And the big clock on the right shows the clock for Jam, Lineup, Timeout and Halftime.
+### Safety Locks
 
-## Usage
+* A jam can not be called off in the first three seconds to prevent immediate call-offs by double pressing the button.
+* A jam can not be started during the first second of the Lineup for the same reason.
+* A Team Timeout or Official Review can not be ended for 60 seconds.
+* An Overtime Jam can not be called off manually. It's still possible to call a Timeout during an Overtime Jam.
 
-There are three buttons: Button A (Green), Button B (Red) and Button C (Black).
-There's also a vibrating motor, giving some haptic feedback.
+### Signals
 
-### WiFi
+The Stopwatch provides signals the Jam timer in the form of tones and vibrations resembling the appropriate whistle signals.
+These can be individually toggled on and off by holding the corresponding icons on the screen.
 
-If configured (`wifi` set to `true`), the device will try to connect to a WiFi Network. If successful, there are three differnt Options:
+Additionally there are some convenient time warning signals:
 
-Button A will start the device in full WiFi mode, every event will be sent to the server.
-Button B will start the device in Clock Sync mode, only the period clock will be synced after the begin of each Jam.
-Button C will disable the WiFi.
+* Lineup: Signal at 6 Seconds and every Second until the Jam starts (For 5 Secons warnings)
+* Timeout: Signal after 50 Seconds (For 10 Second Warnings)
+* Jam: Signal at 5 Seconds (For Jam Calloff)
 
-The game is started by pressing any of these buttons. The game then starts in Lineup Mode.
+### Differences to the Officiating Procedures and Scoreboard
 
-### Lineup
+* Lineup Clock counts down instead of up. (It is never stated explicitly, but assumed in [WFTDA Officiating Procedures 2.7 and 6.1.1](https://static.wftda.com/officiating/wftda-officiating-procedures.pdf))
+* Timeout is followed by a Lineup instead of the timeout clock continuing until the Jam starts. ([WFTDA Officiating Procedures 4.8](https://static.wftda.com/officiating/wftda-officiating-procedures.pdf) mandates this for the Scoreboard)
 
-In Lineup Mode the timer is set to 30 Seconds and will count down to 0. At 0 the device switches to Jam Mode automatically and resume the Period Clock if stopped.
+## Install
 
-At five seconds the device will buzz.
-At four to one seconds, the device will do a short buzz every second.
-At zero seconds, when the jam starts, the device will do a long buzz.
+Using [Arduino IDE](https://arduino-ide.org/download.html) follow [these setup instructions](https://docs.m5stack.com/en/arduino/stopwatch/program) for the M5 Board
 
-Pressing Button A will start the jam immediately and the device will switch to Jam Mode.
+* M5Stack Board Manager version 3.3.7 or newer
+* M5Unified 0.2.15 or newer
+* M5GFX 0.2.21 or newer
 
-When the Period Clock ist stopped (after a timeout or in the beginning of a period), pressing Button B will set the Lineup Clock to 5 seconds immediately.
+Select the `M5StopWatch` board and upload `counterclock.ino`.
+The sketches containing folder must be named `counterclock`, matching the primary `.ino` file.
 
-Pressing Button C will start a timeout and the device will switch to Timeout Mode.
+## Additional Resources
 
-When the Period Clock is at 00:00, the device will switch to Halftime or End of Game Mode.
+* [3D printable case](https://www.printables.com/model/1747065-m5stack-stopwatch-magnetic-grip-case)
 
-### Jamming
+## Todo
 
-In Jam Mode, the timer is set to 2:00 and will count down to 0. The last 5 seconds will be indicated by a short buzz every second. 
-At 0 the Jam ends and the devices switches back to Lineup Mode.
-
-Pressing Button A or B will call off the jam immediately and the device will switch to Lineup Mode, when the Jam is on for at least 3 seconds.
-
-Pressing Button C will start a timeout and the device will switch to Timeout Mode.
-When Button C is pressed within the first three seconds, it is assumed the Timeout was called during Lineup and the Jam wasn't started.
-
-### Timeout
-
-In Timeout mode, the Period Clock is stopped.
-
-Every Timeout starts as an Official Timeout. Pressing Button C cycles through Timeout and Adjust Modes.
-
-#### Official Timeout
-
-Pressing Button A or B will end the official Timeout and the device will switch to Lineup Mode.
-
-When the Period Clock was at unter 30 seconds at the end of the last jam, Button A will resume the Period Clock, Button B will not. Use Button B at your discretion when an Official Timeout is called after a Team Timeout or Official Review to prevent the Official Timeout from killing the otherwise set Jam. (Yes, that's a bit mindboggling.)
-
-#### Team Timeout
-
-A Team Timeout will end autmatically at 60 seconds and the device will switch to Lineup Mode.
-
-Pressing Button A will decrease the number of Team Timeouts shown on the right.
-Pressing Button B will decrease the number of Team Timeouts shown on the left.
-
-When the Timeout Clock passes 50 seconds, the device will give a short buzz to remember the JT to give a verbal 10 seconds notice.
-From 55 to 59 Seconds, the device will give a short buzz.
-
-When the Timeout Clock passes 60 seconds while not in Team Timeout Mode, pressing button A will end the Timeout in Team Timeout Mode.
-
-
-#### Official Review
-
-Pressing Button A will mark the Official Review Icon shown on the right.
-Pressing Button B will mark the Official Review Icon shown on the left.
-
-A buzz will indicate the one minute mark in Official Review mode.
-
-After one minute, Pressing Button A or B will end the Official Review. While Button A will retain the Review Icon, Button B will delete it.
-Ending the Timeout in any other mode will always retain the review.
-
-#### Clock Adjust
-
-Pressing Button A will increase the number of Seconds or Minutes on the Period Clock.
-Pressing Button A will decrease the number of Seconds or Minutes on the Period Clock.
-
-#### Jam Adjust
-
-Pressing Button A will increase the number of Jams.
-Pressing Button B will decrease the number of Jams.
-
-### Halftime
-
-The Halftime will not end automatically. 
-Pressing Button A or B will end the Halftime and start a new Period. Official Reviews will be restored and the device will switch to Lineup Mode.
-
-Pressing Button C will reset the Halftime Clock, start a timeout and the device will switch to Timeout Mode. This is useful when someone uses their Official Review after the last Jam.
-
-### End of Game
-
-Pressing Button B will initiate an overtime Jam. The Lineup Clock will be set to 60 seconds and the device will switch to Lineup Mode. 
-
-Pressing Button C will start a timeout and the device will switch to Timeout Mode. This is useful when someone uses their Official Review after the last Jam.
-
-## WiFi Protocol
-
-The WiFi protocol is rather simple. The device will sent UDP packets to port 16016 on it's Network Gateway. These contain some ascii commands:
-
-* `gst`: Start of Game
-* `eog`: End of game
-* `pen`: End of Period
-* `jst`: Start of Jam
-* `jen`: End of Jam
-* `oto`: Official Timeout
-* `tto:1`: Team-Timeout (Team 1)
-* `tto:2`: Team-Timeout (Team 2)
-* `orv:1`: Official-Review (Team 1)
-* `orv:2`: Official-Review (Team 2)
-* `rrv:1`: Retained Review (Team 1)
-* `lrv:2`: Lost Review (Team 2)
-* `rsm`: Resume Game (After Timeout or Intermission)
-* `otj`: Overtime Jam 
-* `clk:<time>`: Set Period Clock to this number of remaining Milliseconds
-
-See [Scorehub](https://github.com/yetzt/scorehub) for an implementation.
-
-## Parts list
-
-Those are the parts i used for my prototype.
-
-* [Adafruit Feather HUZZAH with ESP8266 WiFi](https://www.adafruit.com/products/2821)
-* [Adafruit FeatherWing OLED](https://www.adafruit.com/products/2900)
-* [Vibrating Mini Motor Disc](https://www.adafruit.com/products/1201)
-* [16mm Panel Mount Momentary Pushbutton](https://www.adafruit.com/products/1445) Black, Red, Green
-* [250 mAh LiPo Battery](https://www.adafruit.com/categories/917)
-* Some Pin Headers
-
-And for the Casing
-
-* Some Scrap 3mm Plexiglass
-* 4× 15mm M3 Spacers ans Screws
-* 4× 18mm M2.5 Hex Bolts and Nuts
-* A leftover lanyard
-
-Tools and Materials
-
-* Soldering iron and tin solder
-* Screwdriver and Plyers
-* Drill tool
-* Glue and Velcro
-
-## Case Template
-
-In case you want to recreate my prototype, you 
-
-![The Case](doc/case.png)
+* [ ] Visual Indicator of Touch Targets in Timeout Mode
+* [ ] Improve Settings Overlay Positioning
+* [ ] Hold Buttons to Rapidly cycle through Numbers
+* [ ] Write Manual
+* [ ] Make Demonstration Video
+* [ ] Figure out why Real Time Clock is not preserved
 
 ## Future Plans
 
-* Source a nice case
+* Wifi Integration with [CRG Scoreboard](https://github.com/rollerderby/scoreboard)
+	* Period Clock Sync (Manual and Automatic)
+	* Game State Sync
+	* Full Remote Control (For Scrimmage Situations without Scoreboard Operator)
+
+## Contributions
+
+Contributions are welcome! If you want to improve something or fix a bug:
+
+* Fork the repository
+* Create a new branch
+* Commit your changes with a clear message
+* Open a Pull Request
+
+Please keep the PR focused on a single topic. If you're unsure about something, feel free to open an issue first to discuss it. Thanks!
+
+You can find open tasks under issues or in the [todo section](#Todo)
+
+Please follow the existing formatting conventions. The project uses tabs.
+
+By contributing, you agree that your code will be dedicated to the Public Domain.
+
+## Code of Conduct
+
+This project follows the Contributor Covenant Code of Conduct. By participating, you are expected to uphold this code.
+
+See the full text in the [code of conduct file](code-of-conduct.md).
+
+## Name and History
+
+![CounterClock in Action](docs/counterclock-prototype.jpeg)
+
+CounterClock is called CounterClock because Roller Derby is played in counter-clockwise direction.
+The first prototype of this software was released in 2016 and has been used successfully in many games.
 
 ## License
 
-The Font is based on Tom Thumb and Licensed under a 3-clause BDS license.
-Everythin else is released [into the public domain](http://unlicense.org/).
+The CounterClock Font is based on [Tom Thumb](https://robey.lag.net/2010/01/23/tiny-monospace-font.html) ([CC-0](https://creativecommons.org/publicdomain/zero/1.0/)).
+The CounterClock Software is [dedicated to the public domain](http://unlicense.org/).

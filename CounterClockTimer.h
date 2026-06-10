@@ -1,200 +1,107 @@
+#pragma once
 
-#ifndef Timer_h
-#define Timer_h
+#include <Arduino.h>
 
-#include<Arduino.h>
+// A non-blocking countdown timer driven by repeated update calls.
+class CounterClockTimer {
+ public:
+  // Create a stopped timer initialized to its full duration.
+  explicit CounterClockTimer(uint32_t durationMs)
+      : durationMs_(durationMs), remainingMs_(durationMs) {}
 
-class Timer {
+  // Subtract elapsed milliseconds and flag displayed-second changes.
+  void update() {
+    ticked_ = false;
+    if (!running_) return;
 
-	private:
+    const uint32_t now = millis();
+    const uint32_t delta = now - updatedAt_;
+    updatedAt_ = now;
 
-		// end time, the amount of time on start
-		unsigned long v;
-
-		// start time the millis() value on start or virtual start time on resume()
-		unsigned long t;
-
-		// current time, set when Timer() called, for internal purposes
-		unsigned long c;
-
-		// keep elapsed time on pause
-		unsigned long e;
-
-		// has one second elapsed?
-		bool tick;
-
-		// keep last second
-		unsigned int lastsec = 0;
-
-		// flag if timer is running
-		bool running;
-
-	public:
-
-		Timer(unsigned long end) {
-			running = false;
-			v = end;
-			e = 0;
-		}
-		
-		// run timer
-		boolean run(){
-			
-			tick = false;
-
-			if (running) {
-				// update internal clock
-				c = millis();
-				// update elapsed time
-				e = (c-t);
-				
-				if (lastsec != sec()) {
-					lastsec = sec();
-					tick = true;
-				}
-				
-				// if time is zero, halt and set elapsed to amount
-				if (v <= e) {
-					running = false;
-					e = v;
-					tick = true;
-				}
-				
-			}
-		}
-		
-		// start timer
-		void start(){
-
-			// update internal clock
-			c = millis();
-			// set start time
-			t = (c - e);
-
-			// set running status
-			running = true;
-
-		}
-		
-		// set remaining time to arbitrary number
-		void set (unsigned int s) {
-			c = millis();
-			t = (c-(v-s));
-			e = (c-t);
-			tick = true;
-		};
-		
-		// set end time to differen value
-		void change (unsigned int s) {
-			c = millis();
-			v = s;
-		};
-		
-		// pause timer
-		void pause() {
-			if (running) {
-				// set running status
-				running = false;
-				// update internal clock
-				c = millis();
-				// get current elapsed time
-				e = (c-t);
-			}
-		}
-		
-		// i spaused
-		bool paused() {
-			return (!running);
-		}
-
-		// second marker
-		bool ticked() {
-			return tick;
-		}
-		
-		// reset
-		void reset(){
-			running = false;
-			e = 0;
-		}
-		
-		// check if timer is zero
-		bool done() {
-			return (e>=v);
-		}
-		
-		// return hours
-		unsigned long hour() {
-			return (e<v) ? ((v-e)/3600000) : 0;
-		}
-
-		// return minutes
-		unsigned long min() {
-			return (e<v) ? (((v-e)/60000)%60) : 0;
-		}
-
-		// return seconds
-		unsigned long sec() {
-			return (e<v) ? (((v-e)/1000)%60) : 0;
-		}
-
-    // return ceiled hours
-    unsigned long chour() {
-      // return (e<v) ? (int)ceil((float)((v-e)/3600000)) : 0;
-      return (e<v) ? ((((int)ceil((float)(v-e)/1000))/3600)%60) : 0;
+    if (delta >= remainingMs_) {
+      remainingMs_ = 0;
+      running_ = false;
+    } else {
+      remainingMs_ -= delta;
     }
 
-    // return ceiled minutes
-    unsigned long cmin() {
-      // return (e<v) ? (((int)ceil((float)(v-e)/60000))%60) : 0;
-      return (e<v) ? ((((int)ceil((float)(v-e)/1000))/60)%60) : 0;
-    }
+    const uint32_t second = remainingSecondsCeil();
+    ticked_ = second != previousSecond_;
+    previousSecond_ = second;
+  }
 
-    // return ceiled seconds
-    unsigned long csec() {
-      return (e<v) ? (((int)ceil((float)(v-e)/1000))%60) : 0;
-    }
+  // Resume counting down from the current remaining time.
+  void start() {
+    if (remainingMs_ == 0) return;
+    updatedAt_ = millis();
+    previousSecond_ = remainingSecondsCeil();
+    running_ = true;
+  }
 
+  // Capture elapsed time and stop without resetting.
+  void pause() {
+    update();
+    running_ = false;
+  }
 
-		unsigned long ms() {
-			return (e<v) ? ((v-e)%1000) : 0;
-		}
-		
-		// return hours elapsed
-		unsigned long uphour() {
-			return (e<v) ? ((e)/3600000) : 0;
-		}
+  // Restore the full configured duration and stop.
+  void reset() {
+    running_ = false;
+    remainingMs_ = durationMs_;
+    previousSecond_ = remainingSecondsCeil();
+    ticked_ = true;
+  }
 
-		// return minutes elapsed
-		unsigned long upmin() {
-			return (e<v) ? (((e)/60000)%60) : 0;
-		}
+  // Immediately complete and stop the timer.
+  void finish() {
+    remainingMs_ = 0;
+    running_ = false;
+    ticked_ = true;
+  }
 
-		// return seconds elapsed
-		unsigned long upsec() {
-			return (e<v) ? (((e)/1000)%60) : 0;
-		}
+  // Replace the configured duration and reset the timer.
+  void setDuration(uint32_t durationMs) {
+    durationMs_ = durationMs;
+    reset();
+  }
 
-		// return millis elapsed
-		unsigned long upms() {
-			return (e<v) ? ((e)%1000) : 0;
-		}
+  // Set a clamped remaining time while preserving the running state.
+  void setRemaining(uint32_t remainingMs) {
+    remainingMs_ = remainingMs > durationMs_ ? durationMs_ : remainingMs;
+    updatedAt_ = millis();
+    previousSecond_ = remainingSecondsCeil();
+    ticked_ = true;
+  }
 
-		// return seconds left
-		unsigned long left() {
-			return (e<v) ? ((v-e)/1000) : 0;
-		}
-		
-		// return seconds elapsed
-		unsigned long gone() {
-			return (e<v) ? (e/1000) : 0;
-		}
-		
-		// return ms left
-		unsigned long total() {
-			return (e<v) ? (v-e) : 0;
-		}
+  // Add or subtract time without leaving the valid duration range.
+  void adjustRemaining(int32_t deltaMs) {
+    int64_t value = static_cast<int64_t>(remainingMs_) + deltaMs;
+    if (value < 0) value = 0;
+    if (value > durationMs_) value = durationMs_;
+    setRemaining(static_cast<uint32_t>(value));
+  }
 
+  // Report a newly reached ceiling-rounded second.
+  bool justReachedSecond(uint32_t second) const {
+    return ticked_ && remainingSecondsCeil() == second;
+  }
+
+  // Expose timer state and derived elapsed or remaining values.
+  bool running() const { return running_; }
+  bool paused() const { return !running_; }
+  bool done() const { return remainingMs_ == 0; }
+  bool ticked() const { return ticked_; }
+  uint32_t remainingMs() const { return remainingMs_; }
+  uint32_t elapsedMs() const { return durationMs_ - remainingMs_; }
+  uint32_t elapsedSeconds() const { return elapsedMs() / 1000; }
+  uint32_t remainingSecondsCeil() const { return (remainingMs_ + 999) / 1000; }
+
+ private:
+  // Internal countdown state updated from millis().
+  uint32_t durationMs_;
+  uint32_t remainingMs_;
+  uint32_t updatedAt_ = 0;
+  uint32_t previousSecond_ = 0;
+  bool running_ = false;
+  bool ticked_ = false;
 };
-
-#endif
