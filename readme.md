@@ -1,9 +1,9 @@
 # CounterClock for M5Stack StopWatch
 
-![CounterClock in Action](docs/counterclock.jpeg)
-
 This is the software for a stop watch designed for Roller Derby Jam Timing.
 It's made to run on an [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch) ([Shop](https://shop.m5stack.com/products/m5stack-stopwatch-dev-kit-esp32-s3))
+
+![CounterClock in Action](docs/counterclock.jpeg)
 
 ## Manual
 
@@ -81,6 +81,9 @@ The sketches containing folder must be named `counterclock`, matching the primar
 ## Additional Resources
 
 * [3D printable case](https://www.printables.com/model/1747065-m5stack-stopwatch-magnetic-grip-case)
+
+![CounterClock with 3D printed case](docs/counterclock-case.jpeg)
+
 
 ## Todo
 
