@@ -1,7 +1,7 @@
 # CounterClock for M5Stack StopWatch
 
 This is the software for a stop watch designed for Roller Derby Jam Timing.
-It's made to run on an [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch) ([Shop](https://shop.m5stack.com/products/m5stack-stopwatch-dev-kit-esp32-s3))
+It's made to run on an [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch) ([Shop](https://shop.m5stack.com/products/m5stack-stopwatch-dev-kit-esp32-s3), [AliExpress](https://de.aliexpress.com/item/1005012345507286.html))
 
 ![CounterClock in Action](docs/counterclock.jpeg)
 
