@@ -683,13 +683,18 @@ namespace {
 			break;
 
 			// accept lineup shortcuts, warnings, and the transition into a jam
-			case GameState::LINEUP:
+			case GameState::LINEUP: {
+				const bool fiveSecondShortcutAvailable = periodClock.paused() || jam == 0 || periodClock.remainingMs() < LINEUP_MS;
 				if (input.timeout) {
 					beginOfficialTimeout();
-				} else if ((input.swipeDown || input.previous || input.fiveSecondLineup) && (periodClock.paused() || jam == 0 || periodClock.remainingMs() < LINEUP_MS)) {
+				} else if ((input.swipeDown || input.previous || input.fiveSecondLineup) && lineupClock.remainingMs() > 5000 && fiveSecondShortcutAvailable) {
 					lineupClock.setRemaining(5000);
-				} else if (input.primary && millis() - lineupStartedAt >= 1000) {
-					lineupClock.finish();
+				} else if (input.primary) {
+					if (lineupClock.remainingMs() > 5000 && fiveSecondShortcutAvailable) {
+						lineupClock.setRemaining(5000);
+					} else {
+						lineupClock.finish();
+					}
 				}
 
 				if (periodClock.done() && !overtime) {
@@ -706,7 +711,8 @@ namespace {
 					++jam;
 					jamStartSignal();
 				}
-			break;
+				break;
+			}
 
 			// handle jam controls, final warning, and the next state
 			case GameState::JAM:
