@@ -11,17 +11,34 @@ It's made to run on an [M5Stack StopWatch](https://docs.m5stack.com/en/core/Stop
 
 ### Buttons
 
+#### Bottom Button (Red)
+
+When the device is off, pressing the button once will turn the device on.
+When the device is on, pressing the button twice will completely turn the device off, including the real time clock.
+
+> [!CAUTION]
+> To keep the real time clock ticking, set the device to sleep instead of fully powering it off.
+> Turning the device off or setting it to sleep will reset the current game state.
+
+#### Right Button (Blue)
+
 The right button always executes the next logical step in the game
 
-* At the Start: start the first Lineup
-* During Lineup: Immediately start the Jam
+* At the Start: Start the first Lineup
+* During Lineup:
+	* When the Period Clock is stopped: Go to 5 Seconds, Press again to start the Jam
+	* Otherwise: Immediately start the Jam
 * During Jam: Immediately end the Jam
-* During Timeout: End the Timeout
+* During Official Timeout and Offical Review: End the Timeout and move to LineUp
 * During Halftime: Start the next period
 * At the End: Start a new Game
 
+#### Left Button (Yellow)
+
 The left button starts a Timeout during Jam and Lineup
 During a Timeout, the left button switches between Official Timeout, Team Timeout and Official Review modes.
+
+Holding the left button for 3 seconds will turn the device to sleep. This will reset the current game state, but keep the real time clock ticking.
 
 ### Touch Controls
 
@@ -33,6 +50,7 @@ During a Timeout, the left button switches between Official Timeout, Team Timeou
 	* Holding the Period Clock time will open an interface to adjust it
 	* Holding the Perdiod and Jam number will open an interface to adjust them
 	* Holding the Real Time clock will open an interface to change it
+* Vibration / Sound signals can be toggled by holding their respective icons
 
 ### Automatic Actions
 
@@ -48,7 +66,7 @@ During a Timeout, the left button switches between Official Timeout, Team Timeou
 
 * A jam can not be called off in the first three seconds to prevent immediate call-offs by double pressing the button.
 * A jam can not be started during the first second of the Lineup for the same reason.
-* A Team Timeout or Official Review can not be ended for 60 seconds.
+* A Team Timeout ~or Official Review~ can not be ended for 60 seconds.
 * An Overtime Jam can not be called off manually. It's still possible to call a Timeout during an Overtime Jam.
 
 ### Signals
@@ -73,6 +91,7 @@ Using [Arduino IDE](https://arduino-ide.org/download.html) follow [these setup i
 
 * M5Stack Board Manager version 3.3.7 or newer
 * M5Unified 0.2.15 or newer
+* M5PM1 1.0.7 or newer
 * M5GFX 0.2.21 or newer
 
 Select the `M5StopWatch` board and upload `counterclock.ino`.
@@ -87,12 +106,14 @@ The sketches containing folder must be named `counterclock`, matching the primar
 
 ## Todo
 
+* [x] Hold Buttons to Rapidly cycle through Numbers
+* [x] ~Figure out why Real Time Clock is not preserved~ no rtc battery, implement sleep
+* [x] Sleep mode
+* [x] Make 5 Seconds accessible via Button
 * [ ] Visual Indicator of Touch Targets in Timeout Mode
 * [ ] Improve Settings Overlay Positioning
-* [ ] Hold Buttons to Rapidly cycle through Numbers
 * [ ] Write Manual
 * [ ] Make Demonstration Video
-* [ ] Figure out why Real Time Clock is not preserved
 
 ## Future Plans
 
