@@ -1,4 +1,5 @@
 #include <M5Unified.h>
+#include <M5PM1.h>
 #include <Wire.h>
 
 #include "CounterClockTimer.h"
@@ -6,6 +7,16 @@
 #include "bitmaps.h"
 
 namespace {
+
+	M5PM1 pm1;
+
+	void enterL1Sleep() {
+		// keep L1 (IMU + RTC) powered during M5PM1 sleep
+		pm1.setLdoEnable(true);       // L1 ON
+		pm1.ldoSetPowerHold(true);    // Hold L1 power
+		pm1.setLedEnLevel(true);      // Keep LED enabled
+		pm1.shutdown();               // M5PM1 enters sleep (L1 stays on)
+	}
 
 	// clock durations and timeout limits
 	constexpr uint32_t PERIOD_MS = 30UL * 60UL * 1000UL; // 30:00
@@ -32,6 +43,8 @@ namespace {
 	constexpr int BUZZ_TOUCH_Y = 76;
 	constexpr uint32_t FEEDBACK_HOLD_MS = 500;
 	constexpr uint32_t TEAM_ICON_HOLD_MS = 500;
+	constexpr uint32_t SLEEP_HOLD_PROMPT_MS = 1000;
+	constexpr uint32_t SLEEP_HOLD_TRIGGER_MS = 3000;
 	constexpr int TEAM_LEFT_X = 56;
 	constexpr int TEAM_RIGHT_X = 410;
 	constexpr int TEAM_TOUCH_RADIUS = 36;
@@ -102,6 +115,7 @@ namespace {
 		int overlayY = 0;
 		bool fiveSecondLineup = false;
 		bool startOvertimeJam = false;
+		bool sleep = false;
 	};
 
 	// independent clocks used by each game state
@@ -152,6 +166,9 @@ namespace {
 	uint32_t touchStartAt = 0;
 	uint32_t lineupStartedAt = 0;
 	bool periodZeroWarningSent = false;
+	bool leftButtonStarted = false;
+	bool leftButtonSleepHandled = false;
+	uint32_t leftButtonStartAt = 0;
 
 	// display refresh throttle
 	uint32_t lastDrawAt = 0;
@@ -300,9 +317,27 @@ namespace {
 	Input readInput() {
 		Input input;
 
-		// yellow button: timeout, blue button: next logical action
-		input.timeout = M5.BtnA.wasPressed();
+		// yellow button: short press timeout, long press sleep
+		if (M5.BtnA.wasPressed()) {
+			leftButtonStarted = true;
+			leftButtonSleepHandled = false;
+			leftButtonStartAt = millis();
+		}
+		if (leftButtonStarted && M5.BtnA.isPressed() && !leftButtonSleepHandled &&
+				millis() - leftButtonStartAt >= SLEEP_HOLD_TRIGGER_MS) {
+			input.sleep = true;
+			leftButtonSleepHandled = true;
+		}
+		if (leftButtonStarted && M5.BtnA.wasReleased()) {
+			const uint32_t heldFor = millis() - leftButtonStartAt;
+			if (!leftButtonSleepHandled && heldFor < SLEEP_HOLD_PROMPT_MS) {
+				input.timeout = true;
+			}
+			leftButtonStarted = false;
+		}
 		input.next = input.timeout;
+
+		// blue button: next logical game action
 		input.primary = M5.BtnB.wasPressed();
 		input.previous = M5.BtnB.wasHold() && M5.BtnB.wasReleased();
 
@@ -1051,6 +1086,19 @@ namespace {
 		}
 	};
 
+	bool sleepHoldPromptVisible() {
+		return leftButtonStarted && !leftButtonSleepHandled && M5.BtnA.isPressed() &&
+			millis() - leftButtonStartAt >= SLEEP_HOLD_PROMPT_MS;
+	}
+
+	void drawSleepHoldOverlay() {
+		if (!sleepHoldPromptVisible()) return;
+
+		canvas.fillRoundRect(42, 186, 382, 94, 18, BLACK);
+		canvas.drawRoundRect(42, 186, 382, 94, 18, COLOR_ORANGE);
+		drawStatusText("hold button for sleep", 233, COLOR_ORANGE, 2);
+	};
+
 	// draw 5 second button when period clock is halted during lineup
 	void drawFiveSecondButton() {
 		if (state != GameState::LINEUP || adjustmentOverlay != AdjustmentOverlay::NONE) return;
@@ -1185,6 +1233,7 @@ namespace {
 
 		// adjustment overlays
 		drawAdjustmentOverlay();
+		drawSleepHoldOverlay();
 
 		// push to canvas
 		canvas.pushSprite(0, 0);
@@ -1220,6 +1269,11 @@ void setup() {
 	auto config = M5.config();
 	config.internal_spk = true;
 	M5.begin(config);
+
+	// Initialize M5PM1
+	pm1.begin(&M5.In_I2C, M5PM1_DEFAULT_ADDR, M5PM1_I2C_FREQ_100K);
+	pm1.setSingleResetDisable(false);
+
 	Serial.begin(115200);
 	M5.Speaker.setVolume(220);
 
@@ -1247,6 +1301,11 @@ void loop() {
 
 	// get inputs
 	const Input input = readInput();
+	if (input.sleep) {
+		drawScreen();
+		enterL1Sleep();
+		return;
+	}
 
 	// warning when period clock is down while jam is running
 	periodZeroWarning();
