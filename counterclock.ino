@@ -61,6 +61,10 @@ namespace {
 	constexpr int OVERTIME_JAM_BUTTON_Y = 325;
 	constexpr int OVERTIME_JAM_BUTTON_WIDTH = 100;
 	constexpr int OVERTIME_JAM_BUTTON_HEIGHT = 60;
+	constexpr int TAP_MOVE_THRESHOLD = 30;
+	constexpr int SWIPE_MOVE_THRESHOLD = 70;
+	constexpr uint32_t OVERLAY_REPEAT_START_MS = 450;
+	constexpr uint32_t OVERLAY_REPEAT_INTERVAL_MS = 140;
 
 	// top level states of a game
 	enum class GameState {
@@ -164,6 +168,7 @@ namespace {
 	int touchStartX = 0;
 	int touchStartY = 0;
 	uint32_t touchStartAt = 0;
+	uint32_t overlayRepeatNextAt = 0;
 	uint32_t lineupStartedAt = 0;
 	bool periodZeroWarningSent = false;
 	bool leftButtonStarted = false;
@@ -349,6 +354,24 @@ namespace {
 			touchStartX = touch.x;
 			touchStartY = touch.y;
 			touchStartAt = millis();
+			overlayRepeatNextAt = 0;
+		}
+
+		if (touchStarted && adjustmentOverlay != AdjustmentOverlay::NONE && touch.isPressed() &&
+				abs(touch.x - touchStartX) < TAP_MOVE_THRESHOLD &&
+				abs(touch.y - touchStartY) < TAP_MOVE_THRESHOLD) {
+			const uint32_t heldFor = millis() - touchStartAt;
+			const bool onOverlayAdjustButton =
+				(touchStartY >= 140 && touchStartY <= 212) ||
+				(touchStartY >= 282 && touchStartY <= 354);
+			if (onOverlayAdjustButton && heldFor >= OVERLAY_REPEAT_START_MS &&
+					(overlayRepeatNextAt == 0 || millis() >= overlayRepeatNextAt)) {
+				input.overlayTap = true;
+				input.overlayX = touchStartX;
+				input.overlayY = touchStartY;
+				touchHoldHandled = true;
+				overlayRepeatNextAt = millis() + OVERLAY_REPEAT_INTERVAL_MS;
+			}
 		}
 
 		// trigger long-hold controls while the finger remains down
@@ -415,23 +438,23 @@ namespace {
 			}
 		}
 
-		// interpret short taps and swipes when the touch is released
+		// interpret taps and swipes by distance when the touch is released
 		if (touchStarted && touch.wasReleased()) {
 			touchStarted = false;
 			const int dx = touch.x - touchStartX;
 			const int dy = touch.y - touchStartY;
-			const uint32_t duration = millis() - touchStartAt;
+			const bool isTap = abs(dx) < TAP_MOVE_THRESHOLD && abs(dy) < TAP_MOVE_THRESHOLD;
+			const bool isSwipe = abs(dx) > SWIPE_MOVE_THRESHOLD || abs(dy) > SWIPE_MOVE_THRESHOLD;
 
 			// send taps to an open adjustment overlay
 			if (!touchHoldHandled && adjustmentOverlay != AdjustmentOverlay::NONE &&
-					duration < 900 && abs(dx) < 30 && abs(dy) < 30) {
+					isTap) {
 				input.overlayTap = true;
 				input.overlayX = touch.x;
 				input.overlayY = touch.y;
 			// activate the contextual five-second or overtime button
 			} else if (!touchHoldHandled && adjustmentOverlay == AdjustmentOverlay::NONE &&
-								(state == GameState::LINEUP || state == GameState::END) && duration < 900 &&
-								abs(dx) < 30 && abs(dy) < 30 &&
+								(state == GameState::LINEUP || state == GameState::END) && isTap &&
 								touchStartX >= FIVE_SECOND_BUTTON_X - 15 &&
 								touchStartX <= FIVE_SECOND_BUTTON_X + FIVE_SECOND_BUTTON_WIDTH + 15 &&
 								touchStartY >= FIVE_SECOND_BUTTON_Y - 15 &&
@@ -443,7 +466,7 @@ namespace {
 				}
 			// preserve the lineup swipe shortcut for setting five seconds
 			} else if (!touchHoldHandled && adjustmentOverlay == AdjustmentOverlay::NONE &&
-								duration < 900 && (abs(dx) > 70 || abs(dy) > 70)) {
+								isSwipe) {
 				if (abs(dy) > abs(dx)) {
 					input.swipeUp = dy < 0;
 					input.swipeDown = dy > 0;
