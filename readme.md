@@ -97,6 +97,14 @@ Using [Arduino IDE](https://arduino-ide.org/download.html) follow [these setup i
 Select the `M5StopWatch` board and upload `counterclock.ino`.
 The sketches containing folder must be named `counterclock`, matching the primary `.ino` file.
 
+Alternatively, compile and upload from a terminal with:
+
+```sh
+./fla.sh
+```
+
+Pass `--port /dev/...` if the serial port is not detected automatically.
+
 ## Additional Resources
 
 * [3D printable case](https://www.printables.com/model/1747065-m5stack-stopwatch-magnetic-grip-case)
